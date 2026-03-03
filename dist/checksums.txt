@@ -1,6 +1,0 @@
-a8ade01b8d7bdee35072d8a185b816a19f13be72940471d0b6b279b7416343e3  check-mail-domain_0.1.0_darwin_amd64.tar.gz
-6a566ce9fb2370711d13718a49cb674d240529a6a5840549cc868bd31ddc5731  check-mail-domain_0.1.0_darwin_arm64.tar.gz
-0b61fc176212e792b091209b0ca8ae40ca2c8e6c25ce8aec3c61b87482dfbd5b  check-mail-domain_0.1.0_linux_amd64.tar.gz
-9a82cd1c485542b230e89dab64078987968acf7d6a8b23502aff9d1bd9aeceb2  check-mail-domain_0.1.0_linux_arm64.tar.gz
-6cfd9d2c7d3bbc7562783d5b419012381a2c02084f1987a29955cf31bbda4df3  check-mail-domain_0.1.0_windows_amd64.zip
-19747596012e772e4463c121c1db7ae4f4aaa03ab5b0a2cdfeba0bf25cb39cc3  check-mail-domain_0.1.0_windows_arm64.zip
