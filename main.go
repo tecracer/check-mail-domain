@@ -73,4 +73,19 @@ func main() {
 			}
 		}
 	}
+
+	// Check MX records
+	fmt.Println("\n=== MX Records ===")
+	mxRecords, err := net.LookupMX(domain)
+	if err != nil || len(mxRecords) == 0 {
+		fmt.Printf("%-60s \033[31mFail\033[0m\n", domain)
+		if err != nil {
+			fmt.Printf("  Error: %v\n", err)
+		}
+	} else {
+		fmt.Printf("%-60s \033[32mPass\033[0m\n", domain)
+		for _, mx := range mxRecords {
+			fmt.Printf("  Priority: %d, Host: %s\n", mx.Pref, mx.Host)
+		}
+	}
 }
