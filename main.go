@@ -48,10 +48,27 @@ func main() {
 		}
 	}
 
+	// Custom MAIL FROM domain
+	var mailFromDomain string
+	fmt.Println("\n=== Custom MAIL FROM Domain ===")
+	if resp.MailFromAttributes != nil {
+		mailFromDomain = *resp.MailFromAttributes.MailFromDomain
+		fmt.Printf("MAIL FROM Domain: %s\n", mailFromDomain)
+		fmt.Printf("Status: %s\n", resp.MailFromAttributes.MailFromDomainStatus)
+		fmt.Printf("Behavior on MX Failure: %s\n", resp.MailFromAttributes.BehaviorOnMxFailure)
+	} else {
+		fmt.Println("No custom MAIL FROM domain configured")
+	}
+
 	// Check DNS records
 	records := []string{
 		"_amazonses." + domain,
 		"_dmarc." + domain,
+	}
+
+	// Add MAIL FROM domain MX record check
+	if mailFromDomain != "" {
+		records = append(records, "MX:"+mailFromDomain)
 	}
 
 	// Add DKIM tokens from SES
@@ -63,13 +80,30 @@ func main() {
 
 	fmt.Println("\n=== DNS Records ===")
 	for _, record := range records {
-		txtRecords, err := net.LookupTXT(record)
-		if err != nil || len(txtRecords) == 0 {
-			fmt.Printf("%-60s \033[31mFail\033[0m\n", record)
+		// Check if this is an MX record check
+		if len(record) > 3 && record[:3] == "MX:" {
+			mxDomain := record[3:]
+			mxRecords, err := net.LookupMX(mxDomain)
+			if err != nil || len(mxRecords) == 0 {
+				fmt.Printf("%-60s \033[31mFail\033[0m\n", mxDomain+" (MX)")
+				if err != nil {
+					fmt.Printf("  Error: %v\n", err)
+				}
+			} else {
+				fmt.Printf("%-60s \033[32mPass\033[0m\n", mxDomain+" (MX)")
+				for _, mx := range mxRecords {
+					fmt.Printf("  Priority: %d, Host: %s\n", mx.Pref, mx.Host)
+				}
+			}
 		} else {
-			fmt.Printf("%-60s \033[32mPass\033[0m\n", record)
-			for _, txt := range txtRecords {
-				fmt.Printf("  %s\n", txt)
+			txtRecords, err := net.LookupTXT(record)
+			if err != nil || len(txtRecords) == 0 {
+				fmt.Printf("%-60s \033[31mFail\033[0m\n", record)
+			} else {
+				fmt.Printf("%-60s \033[32mPass\033[0m\n", record)
+				for _, txt := range txtRecords {
+					fmt.Printf("  %s\n", txt)
+				}
 			}
 		}
 	}
