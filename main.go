@@ -39,7 +39,12 @@ func main() {
 
 	fmt.Println("=== SES DKIM Configuration ===")
 	if resp.DkimAttributes != nil {
-		fmt.Printf("Status: %s\n", resp.DkimAttributes.Status)
+		dkimStatus := string(resp.DkimAttributes.Status)
+		if dkimStatus == "SUCCESS" {
+			fmt.Printf("Status: \033[32m%s\033[0m\n", dkimStatus)
+		} else {
+			fmt.Printf("Status: %s\n", dkimStatus)
+		}
 		if resp.DkimAttributes.Tokens != nil {
 			fmt.Println("\nDKIM Tokens (selectors):")
 			for _, token := range resp.DkimAttributes.Tokens {
@@ -54,7 +59,12 @@ func main() {
 	if resp.MailFromAttributes != nil {
 		mailFromDomain = *resp.MailFromAttributes.MailFromDomain
 		fmt.Printf("MAIL FROM Domain: %s\n", mailFromDomain)
-		fmt.Printf("Status: %s\n", resp.MailFromAttributes.MailFromDomainStatus)
+		status := string(resp.MailFromAttributes.MailFromDomainStatus)
+		if status == "SUCCESS" {
+			fmt.Printf("Status: \033[32m%s\033[0m\n", status)
+		} else {
+			fmt.Printf("Status: %s\n", status)
+		}
 		fmt.Printf("Behavior on MX Failure: %s\n", resp.MailFromAttributes.BehaviorOnMxFailure)
 	} else {
 		fmt.Println("No custom MAIL FROM domain configured")
@@ -66,9 +76,10 @@ func main() {
 		"_dmarc." + domain,
 	}
 
-	// Add MAIL FROM domain MX record check
+	// Add MAIL FROM domain MX and TXT record checks
 	if mailFromDomain != "" {
 		records = append(records, "MX:"+mailFromDomain)
+		records = append(records, mailFromDomain)
 	}
 
 	// Add DKIM tokens from SES
@@ -99,6 +110,9 @@ func main() {
 			txtRecords, err := net.LookupTXT(record)
 			if err != nil || len(txtRecords) == 0 {
 				fmt.Printf("%-60s \033[31mFail\033[0m\n", record)
+				if err != nil {
+					fmt.Printf("  Error: %v\n", err)
+				}
 			} else {
 				fmt.Printf("%-60s \033[32mPass\033[0m\n", record)
 				for _, txt := range txtRecords {
@@ -117,7 +131,7 @@ func main() {
 			fmt.Printf("  Error: %v\n", err)
 		}
 	} else {
-		fmt.Printf("%-60s \033[32mPass\033[0m\n", domain)
+		fmt.Printf("%-60s \033[32mPass\033[0m (found %d records)\n", domain, len(mxRecords))
 		for _, mx := range mxRecords {
 			fmt.Printf("  Priority: %d, Host: %s\n", mx.Pref, mx.Host)
 		}
